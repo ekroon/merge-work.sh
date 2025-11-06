@@ -13,7 +13,7 @@ jobs:
       contents: write
     steps:
     - uses: actions/checkout@v3
-    - uses: somaz94/compress-decompress@v1.0.5
+    - uses: somaz94/compress-decompress@v1
       with:
         command: compress
         source: merge-work
