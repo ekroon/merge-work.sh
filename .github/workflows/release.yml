@@ -16,7 +16,7 @@ jobs:
     - uses: somaz94/compress-decompress@v1.0.5
       with:
         command: compress
-        source: merge-work.sh
+        source: merge-work
         format: tgz
     - uses: ncipollo/release-action@v1
       with:
