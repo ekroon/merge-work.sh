@@ -16,9 +16,22 @@ fi
 # Ensure MERGE_WORK_REPO is set
 if [ -z "$MERGE_WORK_REPO" ]; then
   echo "Error: MERGE_WORK_REPO environment variable is not set."
-  echo "Please set it to the GitHub repository you want to process PRs for."
-  echo "Example: export MERGE_WORK_REPO=owner/repo"
+  echo "Please set it to a repository in the github organization."
+  echo "Example: export MERGE_WORK_REPO=repo-name"
   exit 1
+fi
+
+# Normalize MERGE_WORK_REPO: bare name gets github/ prefix, owner/repo must use github org
+if [[ "$MERGE_WORK_REPO" == */* ]]; then
+  repo_owner="${MERGE_WORK_REPO%%/*}"
+  if [ "$repo_owner" != "github" ]; then
+    echo "Error: MERGE_WORK_REPO must be a repository in the github organization."
+    echo "Got: $MERGE_WORK_REPO"
+    echo "Example: export MERGE_WORK_REPO=repo-name"
+    exit 1
+  fi
+else
+  MERGE_WORK_REPO="github/$MERGE_WORK_REPO"
 fi
 
 # Function to process a single PR
