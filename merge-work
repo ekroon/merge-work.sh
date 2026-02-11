@@ -13,6 +13,14 @@ if ! gh auth status &>/dev/null; then
   exit 1
 fi
 
+# Ensure MERGE_WORK_REPO is set
+if [ -z "$MERGE_WORK_REPO" ]; then
+  echo "Error: MERGE_WORK_REPO environment variable is not set."
+  echo "Please set it to the GitHub repository you want to process PRs for."
+  echo "Example: export MERGE_WORK_REPO=owner/repo"
+  exit 1
+fi
+
 # Function to process a single PR
 process_pr() {
   pr_number=$1
@@ -38,7 +46,7 @@ process_pr() {
 
     if [[ $mark_ready == "y" ]]; then
       echo "Marking PR as ready for review..."
-      gh pr ready "$pr_number" -R github/issues-platform
+      gh pr ready "$pr_number" -R "$MERGE_WORK_REPO"
     else
       echo "Skipping draft PR"
       return
@@ -57,8 +65,8 @@ process_pr() {
 
   if [[ $confirm == "y" ]]; then
     echo "Approving and merging PR..."
-    gh pr review "$pr_number" -R github/issues-platform --approve
-    gh pr merge "$pr_number" -R github/issues-platform --auto --merge
+    gh pr review "$pr_number" -R "$MERGE_WORK_REPO" --approve
+    gh pr merge "$pr_number" -R "$MERGE_WORK_REPO" --auto --merge
     echo "Merge complete for \"$pr_title\""
   else
     echo "Skipping PR"
@@ -66,11 +74,11 @@ process_pr() {
 }
 
 # Get all PRs assigned to the current user
-echo "Fetching your assigned PRs from github/issues-platform..."
-prs=$(gh pr list -R github/issues-platform --assignee "@me" --json number,title,isDraft)
+echo "Fetching your assigned PRs from $MERGE_WORK_REPO..."
+prs=$(gh pr list -R "$MERGE_WORK_REPO" --assignee "@me" --json number,title,isDraft)
 
 if [ -z "$prs" ]; then
-  echo "No PRs found assigned to you in github/issues-platform"
+  echo "No PRs found assigned to you in $MERGE_WORK_REPO"
   exit 0
 fi
 
@@ -109,4 +117,4 @@ done < <(echo "$prs" | jq -c '.[]')
 
 echo
 echo "PR processing complete!"
-echo "You can view all your assigned PRs at: https://github.com/github/issues-platform/pulls?q=is:pr+is:open+assignee:@me"
+echo "You can view all your assigned PRs at: https://github.com/$MERGE_WORK_REPO/pulls?q=is:pr+is:open+assignee:@me"
